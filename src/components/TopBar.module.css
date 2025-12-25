@@ -1,0 +1,82 @@
+.topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg) var(--spacing-2xl);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    /* margin-left: 250px; REMOVED - managed by page layout */
+    width: 100%;
+}
+
+.kpiGroup {
+    display: flex;
+    gap: var(--spacing-2xl);
+}
+
+.kpiItem {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+}
+
+.kpiContent {
+    display: flex;
+    flex-direction: column;
+}
+
+.kpiLabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-xs);
+}
+
+.kpiValue {
+    font-family: var(--font-family-mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.statusIndicator {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.dot.live {
+    background: var(--color-success);
+    box-shadow: 0 0 8px var(--color-success-dim);
+}
+
+.dot.mock {
+    background: var(--color-warning);
+    box-shadow: 0 0 8px var(--color-warning-dim);
+}
+
+@media (max-width: 768px) {
+    .topBar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+    }
+
+    .kpiGroup {
+        flex-wrap: wrap;
+        gap: var(--spacing-lg);
+    }
+}

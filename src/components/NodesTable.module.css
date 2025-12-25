@@ -1,0 +1,133 @@
+.tableContainer {
+    margin-top: var(--spacing-xl);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    overflow: hidden;
+}
+
+.header {
+    padding: var(--spacing-lg) var(--spacing-2xl);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    background: var(--color-bg-tertiary);
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: -0.01em;
+}
+
+.subtitle {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+    text-align: left;
+}
+
+.table th {
+    padding: var(--spacing-md) var(--spacing-2xl);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+}
+
+.table td {
+    padding: var(--spacing-md) var(--spacing-2xl);
+    border-bottom: 1px solid var(--color-border-subtle);
+    color: var(--color-text-secondary);
+    vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.nodeCell {
+    display: flex;
+    flex-direction: column;
+}
+
+.nodeName {
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.nodeId {
+    font-size: 11px;
+    color: var(--color-text-muted);
+}
+
+.locationCell {
+    display: flex;
+    flex-direction: column;
+}
+
+.city {
+    color: var(--color-text-primary);
+}
+
+.country {
+    font-size: 10px;
+    color: var(--color-text-muted);
+}
+
+/* Status Badges */
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+}
+
+.active {
+    background: rgba(16, 185, 129, 0.15);
+    /* Green tint */
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.degraded {
+    background: rgba(245, 158, 11, 0.15);
+    /* Amber tint */
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.offline {
+    background: rgba(239, 68, 68, 0.15);
+    /* Red tint */
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.mono {
+    font-family: var(--font-family-mono);
+}
