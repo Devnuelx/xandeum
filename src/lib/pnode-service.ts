@@ -120,7 +120,7 @@ function normalizeNode(
 }
 
 /**
- * Generates professional mock data that matches the real schema exactly.
+ * professional mock data that matches the real schema exactly.
  * This is used as a fallback when RPC is unavailable.
  */
 export function getMockNodes(): Node[] {
@@ -144,6 +144,7 @@ export function getMockNodes(): Node[] {
         "52.221.184.56",
         "18.182.56.143",
         "54.178.234.91",
+        "147.12.12.12" // Added dummy IP to fix array length match if needed
     ];
 
     return mockIPs.map((ip, index) => ({
