@@ -1,14 +1,14 @@
 import Image from "next/image";
 import styles from "./Loader.module.css";
+import logo from "../public/logo.webp";
 
 export default function Loader() {
     return (
         <div className={styles.loaderContainer}>
             <div className={styles.logoWrapper}>
                 <div className={styles.ring}></div>
-                {/* Assuming logo.webp is in public/logo.webp as per previous context */}
                 <Image
-                    src="/logo.webp"
+                    src={logo}
                     alt="Xandeum Loading"
                     width={64}
                     height={64}

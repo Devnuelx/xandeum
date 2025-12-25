@@ -3,18 +3,20 @@
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./Sidebar.module.css";
+import logo from "../public/logo.webp";
 
 export default function Sidebar() {
     return (
         <aside className={styles.sidebar}>
             <div className={styles.brand}>
                 <Image
-                    src="/logo.webp"
+                    src={logo}
                     alt="Xandeum"
                     width={40}
                     height={40}
                     className={styles.brandLogo}
                 />
+                <h5>Xandeum</h5>
             </div>
 
             <nav className={styles.nav}>

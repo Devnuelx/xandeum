@@ -102,17 +102,19 @@
     .nav {
         flex-direction: row;
         overflow-x: auto;
-        padding-bottom: 4px;
+        padding-bottom: 40px;
         margin-bottom: 0;
+        padding-top: var(--spacing-lg);
+        /* Added top spacing for mobile nav */
     }
 
     .sectionHeader {
         display: none;
-        /* Hide docs header on mobile to save space */
     }
 
     .brand {
         margin-bottom: var(--spacing-md);
+        background-color: transparent;
     }
 
     .footer {

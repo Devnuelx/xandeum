@@ -11,7 +11,7 @@ export default function Header({ dataSource }: HeaderProps) {
                 <div className={styles.logo}>
                     <div className={styles.logoIcon}>X</div>
                     <div className={styles.logoText}>
-                        <Image src="/logo.webp" alt="Logo" width={40} height={40} />
+                        <Image src={"/logo.webp"} alt="Logo" width={40} height={40} />
                         <h1>Xandeum pNode Analytics</h1>
                         <p>Production Infrastructure Dashboard</p>
                     </div>
