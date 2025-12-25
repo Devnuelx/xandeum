@@ -54,7 +54,7 @@ export async function fetchLiveNodes(): Promise<Node[] | null> {
         // Normalize the raw RPC data
         const nodes = data.result
             .map((rawNode: RPCNodeResponse) => normalizeNode(rawNode, false))
-            .filter((node): node is Node => node !== null);
+            .filter((node: Node | null): node is Node => node !== null);
 
         if (nodes.length === 0) {
             console.warn("[pNode Service] RPC returned empty node list");
@@ -153,7 +153,7 @@ export function getMockNodes(): Node[] {
         status: (["active", "active", "active", "degraded", "offline"] as const)[
             index % 5
         ],
-        release: (index % 3 === 0 ? "Munich v0.8" : "Herrenberg v0.9") as const,
+        release: index % 3 === 0 ? "Munich v0.8" : "Herrenberg v0.9",
         performanceScore: 0.75 + Math.random() * 0.25,
         stoinc: Math.floor(1000 + Math.random() * 9000),
         hasTitan: index % 3 !== 0,
