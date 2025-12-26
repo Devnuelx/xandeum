@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import DashboardGrid from "@/components/DashboardGrid";
@@ -13,7 +13,7 @@ import styles from "./page.module.css";
 
 import { useSearchParams } from "next/navigation";
 
-export default function HomePage() {
+function HomePageContent() {
     const [data, setData] = useState<NodesAPIResponse | null>(null);
     const searchParams = useSearchParams();
     const pickingFor = searchParams.get('picking_for');
@@ -59,5 +59,13 @@ export default function HomePage() {
                 </div>
             </div>
         </main>
+    );
+}
+
+export default function HomePage() {
+    return (
+        <Suspense fallback={<Loader />}>
+            <HomePageContent />
+        </Suspense>
     );
 }
