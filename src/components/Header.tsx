@@ -20,7 +20,7 @@ export default function Header({ dataSource }: HeaderProps) {
                 <div className={styles.dataSource}>
                     <span className={`${styles.statusDot} ${styles[dataSource]}`}></span>
                     <span>
-                        {dataSource === "live" ? "Live RPC Data" : "Derived Data"}
+                        {dataSource === "live" ? "Live Devnet RPC Data" : "Derived Data"}
                     </span>
                 </div>
             </div>

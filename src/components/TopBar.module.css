@@ -67,6 +67,12 @@
     box-shadow: 0 0 8px var(--color-warning-dim);
 }
 
+.dot.devnet {
+    background: #8b5cf6;
+    /* Purple for devnet */
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+}
+
 @media (max-width: 768px) {
     .topBar {
         flex-direction: column;

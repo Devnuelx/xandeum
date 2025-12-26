@@ -1,16 +1,42 @@
 import { Node } from "@/lib/types";
+import { useRouter } from "next/navigation";
 import styles from "./NodesTable.module.css";
 
 interface NodesTableProps {
     nodes: Node[];
+    pickingFor?: string;
 }
 
-export default function NodesTable({ nodes }: NodesTableProps) {
+export default function NodesTable({ nodes, pickingFor }: NodesTableProps) {
+    const router = useRouter();
+    const isPickingMode = !!pickingFor;
+
+    const handleRowClick = (nodeId: string) => {
+        if (isPickingMode && pickingFor) {
+            // Append and redirect back to compare
+            const currentIds = pickingFor.split(',').filter(Boolean);
+            if (!currentIds.includes(nodeId)) {
+                currentIds.push(nodeId);
+            }
+            router.push(`/compare?nodes=${currentIds.join(',')}`);
+        } else {
+            // Normal navigation
+            router.push(`/node/${nodeId}`);
+        }
+    };
     return (
         <div className={styles.container}>
             <div className={styles.header}>
-                <h2 className={styles.title}>Network Nodes</h2>
-                <p className={styles.subtitle}>Real-time node status and metrics</p>
+                {isPickingMode ? (
+                    <div style={{ padding: '8px', background: 'var(--color-primary)', color: 'white', borderRadius: '4px' }}>
+                        <strong>Select a Node to Compare</strong>
+                    </div>
+                ) : (
+                    <>
+                        <h2 className={styles.title}>Network Nodes</h2>
+                        <p className={styles.subtitle}>Real-time node status and metrics</p>
+                    </>
+                )}
             </div>
 
             <div className={styles.tableWrapper}>
@@ -34,7 +60,12 @@ export default function NodesTable({ nodes }: NodesTableProps) {
                             const nodeName = `Node ${['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta'][i % 6]}`;
 
                             return (
-                                <tr key={node.id}>
+                                <tr
+                                    key={node.id}
+                                    onClick={() => router.push(`/node/${node.id}`)}
+                                    className={styles.clickableRow}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <td>
                                         <div className={styles.nodeCell}>
                                             <span className={styles.nodeName}>{nodeName}</span>

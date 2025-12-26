@@ -66,6 +66,17 @@
     background: var(--color-bg-tertiary);
 }
 
+.nodeLink {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.nodeLink:hover .nodeName {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
 .nodeCell {
     display: flex;
     flex-direction: column;

@@ -1,0 +1,20 @@
+.mainLayout {
+    display: flex;
+    min-height: 100vh;
+    background: var(--color-bg-base);
+}
+
+.contentColumn {
+    flex: 1;
+    margin-left: 250px;
+    padding: var(--spacing-xl);
+}
+
+@media (max-width: 1024px) {
+    .contentColumn {
+        margin-left: 0;
+        margin-top: 60px;
+        /* Space for mobile specific headers if needed */
+        padding: var(--spacing-md);
+    }
+}

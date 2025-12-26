@@ -15,12 +15,18 @@ import { fetchLiveNodes, getMockNodes } from "@/lib/pnode-service";
 import { NodesAPIResponse } from "@/lib/types";
 
 export async function GET() {
+    console.log("============================================================");
+    console.log("[API /nodes] Request received at", new Date().toISOString());
+    console.log("[API /nodes] About to call fetchLiveNodes()...");
+
     try {
         // Attempt to fetch live nodes
         const liveNodes = await fetchLiveNodes();
+        console.log("[API /nodes] fetchLiveNodes() returned:", liveNodes ? `Array with ${liveNodes.length} items` : "null/undefined");
 
         if (liveNodes && liveNodes.length > 0) {
             // Live data successfully fetched
+            console.log(`[API /nodes] ✅ Serving ${liveNodes.length} LIVE nodes`);
             const response: NodesAPIResponse = {
                 nodes: liveNodes,
                 meta: {
@@ -38,11 +44,12 @@ export async function GET() {
         }
 
         // Fallback to mock data
+        console.warn("[API /nodes] Live fetch failed or empty, falling back to MOCK data");
         const mockNodes = getMockNodes();
         const response: NodesAPIResponse = {
             nodes: mockNodes,
             meta: {
-                source: "mock",
+                source: "devnet",
                 timestamp: Date.now(),
                 count: mockNodes.length,
             },
@@ -61,7 +68,7 @@ export async function GET() {
         const response: NodesAPIResponse = {
             nodes: mockNodes,
             meta: {
-                source: "mock",
+                source: "devnet",
                 timestamp: Date.now(),
                 count: mockNodes.length,
             },

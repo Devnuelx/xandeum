@@ -34,8 +34,31 @@ export interface Node {
 }
 
 /**
- * Raw RPC response structure from getClusterNodes
- * This is what we expect from https://rpc.xandeum.network
+ * Raw pRPC response structure from get-pods method
+ * This is what we expect from http://<pnode-ip>:6000/rpc
+ */
+export interface PRPCPodResponse {
+    address: string;           // IP:port format e.g. "192.168.1.100:9001"
+    version: string;           // Software version e.g. "1.0.0"
+    last_seen: string;         // Human-readable timestamp
+    last_seen_timestamp: number; // Unix timestamp
+}
+
+/**
+ * Full pRPC get-pods response wrapper
+ */
+export interface PRPCGetPodsResponse {
+    jsonrpc: string;
+    result: {
+        pods: PRPCPodResponse[];
+        total_count: number;
+    };
+    id: number;
+}
+
+/**
+ * Legacy RPC response structure (Solana-style getClusterNodes)
+ * Kept for compatibility if ever used
  */
 export interface RPCNodeResponse {
     pubkey?: string;
@@ -52,7 +75,7 @@ export interface RPCNodeResponse {
 export interface NodesAPIResponse {
     nodes: Node[];
     meta: {
-        source: "live" | "mock";
+        source: "live" | "devnet" | "mock";
         timestamp: number;
         count: number;
     };

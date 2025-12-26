@@ -6,18 +6,25 @@ interface GlobalMapProps {
 }
 
 export default function GlobalMap({ nodes }: GlobalMapProps) {
-    // Approximate coordinates for regions (0-100 scale on standard Robinson projection roughly)
-    const getPosition = (region: string) => {
-        const jitter = (num: number) => num + (Math.random() - 0.5) * 5;
+    // Deterministic pseudo-random based on string seed
+    const getStableRandom = (seed: string, offset: number = 0) => {
+        const charCodeSum = seed.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const x = Math.sin(charCodeSum + offset) * 10000;
+        return x - Math.floor(x);
+    };
+
+    // Approximate coordinates for regions with stable jitter
+    const getPosition = (region: string, nodeId: string) => {
+        const jitter = (base: number, offsetIdx: number) => base + (getStableRandom(nodeId, offsetIdx) - 0.5) * 5;
 
         switch (region) {
-            case "us-east-1": return { x: jitter(28), y: jitter(38) }; // US East
-            case "us-west-2": return { x: jitter(18), y: jitter(38) }; // US West
-            case "eu-central-1": return { x: jitter(52), y: jitter(28) }; // Germany
-            case "eu-west-1": return { x: jitter(49), y: jitter(29) }; // UK
-            case "ap-southeast-1": return { x: jitter(78), y: jitter(55) }; // Singapore
-            case "ap-northeast-1": return { x: jitter(85), y: jitter(38) }; // Japan
-            default: return { x: jitter(50), y: jitter(50) };
+            case "us-east-1": return { x: jitter(28, 1), y: jitter(38, 2) }; // US East
+            case "us-west-2": return { x: jitter(18, 3), y: jitter(38, 4) }; // US West
+            case "eu-central-1": return { x: jitter(52, 5), y: jitter(28, 6) }; // Germany
+            case "eu-west-1": return { x: jitter(49, 7), y: jitter(29, 8) }; // UK
+            case "ap-southeast-1": return { x: jitter(78, 9), y: jitter(55, 10) }; // Singapore
+            case "ap-northeast-1": return { x: jitter(85, 11), y: jitter(38, 12) }; // Japan
+            default: return { x: jitter(50, 13), y: jitter(50, 14) };
         }
     };
 
@@ -37,7 +44,10 @@ export default function GlobalMap({ nodes }: GlobalMapProps) {
     return (
         <div className={styles.mapContainer}>
             <div className={styles.mapContent}>
-                {/* Left Side: Metrics Panel */}
+                {/* Left Side: Metrics Panel removed to match cleaner Vercel-like aesthetic better if user prefers, 
+                    but keeping structure for now as requested "don't change anything there" except fixing map.
+                    The logic below handles the visualization stability.
+                */}
                 <div className={styles.metricsPanel}>
                     <div className={styles.totalRequestsLabel}>Total Requests</div>
                     <div className={styles.totalRequestsValue}>115,838,147,868</div>
@@ -135,8 +145,10 @@ export default function GlobalMap({ nodes }: GlobalMapProps) {
                     </svg>
 
                     {nodes.map((node, i) => {
-                        const pos = getPosition(node.region);
+                        const pos = getPosition(node.region, node.id);
                         const colorClass = getRegionStyle(node.region);
+                        const isPulsing = node.status === 'active' && getStableRandom(node.id, 99) > 0.6;
+                        const delay = getStableRandom(node.id, 100) * 2;
 
                         return (
                             <div key={node.id}>
@@ -144,13 +156,13 @@ export default function GlobalMap({ nodes }: GlobalMapProps) {
                                     className={`${styles.nodeDot} ${colorClass}`}
                                     style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
                                 />
-                                {node.status === 'active' && Math.random() > 0.6 && (
+                                {isPulsing && (
                                     <div
                                         className={`${styles.activePulse} ${colorClass}`}
                                         style={{
                                             left: `${pos.x}%`,
                                             top: `${pos.y}%`,
-                                            animationDelay: `${Math.random() * 2}s`
+                                            animationDelay: `${delay}s`
                                         }}
                                     />
                                 )}

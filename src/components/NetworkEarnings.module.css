@@ -1,0 +1,139 @@
+.container {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--spacing-md);
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.description {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    max-width: 600px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-2xl);
+}
+
+.metricGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.bigMetric {
+    display: flex;
+    flex-direction: column;
+}
+
+.metricLabel {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-xs);
+}
+
+.metricValue {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.1;
+}
+
+.metricSub {
+    font-size: 0.9rem;
+    color: var(--color-success);
+    margin-top: var(--spacing-xs);
+}
+
+.chartArea {
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 160px;
+}
+
+.tierBar {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.85rem;
+}
+
+.tierLabel {
+    width: 120px;
+    color: var(--color-text-secondary);
+}
+
+.tierTrack {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 var(--spacing-md);
+}
+
+.tierFill {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: 4px;
+}
+
+.tierValue {
+    width: 60px;
+    text-align: right;
+    font-weight: 600;
+    font-family: var(--font-family-mono);
+}
+
+.ctaArea {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-md);
+}
+
+.link {
+    font-size: 0.9rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
