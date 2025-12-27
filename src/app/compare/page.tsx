@@ -23,8 +23,8 @@ export default function ComparePage() {
             // Try to get node IDs from URL first, then from localStorage
             let nodeIds = searchParams.get("nodes")?.split(",") || [];
 
-            if (nodeIds.length === 0) {
-                // Check localStorage for persisted selections
+            if (nodeIds.length === 0 && typeof window !== 'undefined') {
+                // Check localStorage for persisted selections (only in browser)
                 const stored = localStorage.getItem(COMPARISON_STORAGE_KEY);
                 if (stored) {
                     try {
@@ -46,8 +46,10 @@ export default function ComparePage() {
                 const selectedNodes = json.nodes.filter((n: Node) => nodeIds.includes(n.id));
                 setNodes(selectedNodes);
 
-                // Persist to localStorage
-                localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(nodeIds));
+                // Persist to localStorage (only in browser)
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(nodeIds));
+                }
 
                 // Update URL if needed
                 if (!searchParams.get("nodes")) {
@@ -66,23 +68,31 @@ export default function ComparePage() {
     const handleRemoveNode = (nodeId: string) => {
         const remainingIds = nodes.filter(n => n.id !== nodeId).map(n => n.id);
         if (remainingIds.length === 0) {
-            localStorage.removeItem(COMPARISON_STORAGE_KEY);
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem(COMPARISON_STORAGE_KEY);
+            }
             router.push("/all-nodes");
         } else {
-            localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(remainingIds));
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(remainingIds));
+            }
             router.push(`/compare?nodes=${remainingIds.join(",")}`);
         }
     };
 
     const handleClearAll = () => {
-        localStorage.removeItem(COMPARISON_STORAGE_KEY);
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(COMPARISON_STORAGE_KEY);
+        }
         router.push("/all-nodes");
     };
 
     const handleAddMore = () => {
         // Store current nodes before navigating
         const currentIds = nodes.map(n => n.id);
-        localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(currentIds));
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(currentIds));
+        }
         router.push(`/?picking_for=${currentIds.join(",")}#nodes`);
     };
 
