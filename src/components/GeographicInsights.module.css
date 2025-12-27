@@ -1,0 +1,175 @@
+.container {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-lg) 0;
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.statCard {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+}
+
+.statValue {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: var(--font-family-mono);
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+}
+
+.statLabel {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Sections */
+.section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.section:last-child {
+    margin-bottom: 0;
+}
+
+.sectionTitle {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Simple List (Version Distribution) */
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.listItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+}
+
+.listLabel {
+    color: var(--color-text-secondary);
+}
+
+.listValue {
+    color: var(--color-text-primary);
+    font-weight: 600;
+}
+
+/* Bar Chart */
+.barList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.barItem {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.barHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.barCode {
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-accent-highlight);
+}
+
+.barValue {
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.barTrack {
+    height: 6px;
+    background: var(--color-bg-secondary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.barFill {
+    height: 100%;
+    background: var(--color-accent-highlight);
+    border-radius: 3px;
+    transition: width var(--transition-base);
+}
+
+/* Status List */
+.statusList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.statusItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.statusDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.statusLabel {
+    flex: 1;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.statusValue {
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+@media (max-width: 768px) {
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .statValue {
+        font-size: 24px;
+    }
+}

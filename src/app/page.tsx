@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import DashboardGrid from "@/components/DashboardGrid";
-import NetworkEarnings from "@/components/NetworkEarnings";
 import GlobalMap from "@/components/GlobalMap";
 import NodesTable from "@/components/NodesTable";
 import Loader from "@/components/Loader";
@@ -47,7 +46,6 @@ function HomePageContent() {
 
                 <div id="analytics">
                     <DashboardGrid nodes={data.nodes} />
-                    <NetworkEarnings />
                     <GlobalMap nodes={data.nodes} />
                 </div>
 

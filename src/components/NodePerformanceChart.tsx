@@ -1,6 +1,7 @@
 "use client";
 
 import { Node } from "@/lib/types";
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import styles from "./NodePerformanceChart.module.css";
 
 interface NodePerformanceChartProps {
@@ -8,7 +9,6 @@ interface NodePerformanceChartProps {
 }
 
 export default function NodePerformanceChart({ node }: NodePerformanceChartProps) {
-    // Generate smooth wave data similar to the reference image
     // Determine colors based on status
     const statusColors = {
         active: { primary: '#10b981', secondary: '#6b7280' },
@@ -19,89 +19,26 @@ export default function NodePerformanceChart({ node }: NodePerformanceChartProps
     const colors = statusColors[node.status] || statusColors.active;
     const finalScore = node.performanceScore * 100;
 
-    // Generate synthetic history ending at the current score
-    // We use a deterministic seed based on node ID so it doesn't flicker on re-renders,
-    // but here we'll just use a stable memo-like generation if possible, strictly we just render
-    // based on index for the 'smoothness'.
+    // Generate realistic performance data for 30 days
     const dataPoints = 30;
     const data = Array.from({ length: dataPoints }, (_, i) => {
+        const daysAgo = dataPoints - i - 1;
         const t = i / (dataPoints - 1);
 
-        // Target value is finalScore. Start value is somewhat random but consistent locally.
-        // We'll simulate a "trend" towards the final score.
-        // Base vibration
+        // Simulate trend towards current score
         const noise = Math.sin(t * Math.PI * 4 + finalScore) * 5 * (1 - t);
-
-        // Trend curve: Ease out expo implementation to converge at the end
-        // Simple linear interpolation with some curve
         const trend = finalScore + (Math.sin(i * 0.5) * 2) - ((1 - t) * 10);
+        const uptime = Math.max(0, Math.min(100, trend + noise));
 
-        const primaryVal = Math.max(0, Math.min(100, trend + noise));
+        // Baseline performance (always more stable)
+        const baseline = 60 + Math.cos(t * Math.PI * 2) * 5;
 
-        // Secondary line (baseline) - make it stable around avg
-        const secondaryVal = 60 + Math.cos(t * Math.PI * 2) * 5;
-
-        return { primary: primaryVal, secondary: secondaryVal };
+        return {
+            day: daysAgo === 0 ? 'Today' : daysAgo === 15 ? '15d' : daysAgo === 29 ? '30d ago' : `${daysAgo}d`,
+            uptime: parseFloat(uptime.toFixed(1)),
+            baseline: parseFloat(baseline.toFixed(1)),
+        };
     });
-
-    const width = 800;
-    const height = 200;
-    const padding = 20;
-    const maxVal = 100;
-    const minVal = 40;
-
-    // Convert data to SVG path
-    const createSmoothPath = (values: number[]) => {
-        if (values.length === 0) return '';
-
-        const points = values.map((val, i) => {
-            const x = padding + (i / (values.length - 1)) * (width - 2 * padding);
-            const y = height - padding - ((val - minVal) / (maxVal - minVal)) * (height - 2 * padding);
-            return { x, y };
-        });
-
-        // Create smooth bezier curve using quadratic interpolation
-        let path = `M ${points[0].x},${points[0].y}`;
-
-        for (let i = 0; i < points.length - 1; i++) {
-            const current = points[i];
-            const next = points[i + 1];
-            const controlX = (current.x + next.x) / 2;
-            const controlY = (current.y + next.y) / 2;
-
-            if (i === 0) {
-                path += ` Q ${controlX},${controlY} ${next.x},${next.y}`;
-            } else {
-                const prev = points[i - 1];
-                const cx1 = current.x;
-                const cy1 = (prev.y + current.y + next.y) / 3;
-                path += ` Q ${cx1},${cy1} ${next.x},${next.y}`;
-            }
-        }
-
-        return path;
-    };
-
-    const primaryPath = createSmoothPath(data.map(d => d.primary));
-    const secondaryPath = createSmoothPath(data.map(d => d.secondary));
-
-    // Create area fill path for primary
-    const primaryAreaPath = primaryPath + ` L ${width - padding},${height - padding} L ${padding},${height - padding} Z`;
-
-    // Get point coordinates for rendering circles
-    const getPoints = (values: number[]) => {
-        return values.map((val, i) => {
-            const x = padding + (i / (values.length - 1)) * (width - 2 * padding);
-            const y = height - padding - ((val - minVal) / (maxVal - minVal)) * (height - 2 * padding);
-            return { x, y };
-        });
-    };
-
-    const primaryPoints = getPoints(data.map(d => d.primary));
-    const secondaryPoints = getPoints(data.map(d => d.secondary));
-
-    // Sample points to show (not all 30, just key ones)
-    const showPointsAt = [0, 5, 10, 15, 20, 25, 29];
 
     return (
         <div className={styles.chartContainer}>
@@ -119,86 +56,80 @@ export default function NodePerformanceChart({ node }: NodePerformanceChartProps
                 </div>
             </div>
 
-            <div className={styles.svgWrapper}>
-                <svg viewBox={`0 0 ${width} ${height}`} className={styles.chartSvg} preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={colors.primary} stopOpacity="0.2" />
-                            <stop offset="100%" stopColor={colors.primary} stopOpacity="0" />
-                        </linearGradient>
-                    </defs>
+            <div className={styles.chartWrapper}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+                        <defs>
+                            <linearGradient id="uptimeGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={colors.primary} stopOpacity={0.1} />
+                                <stop offset="95%" stopColor={colors.primary} stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
 
-                    {/* Grid lines */}
-                    {[0.25, 0.5, 0.75].map((ratio, i) => (
-                        <line
-                            key={i}
-                            x1={padding}
-                            y1={padding + ratio * (height - 2 * padding)}
-                            x2={width - padding}
-                            y2={padding + ratio * (height - 2 * padding)}
-                            className={styles.gridLine}
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="var(--color-border)"
+                            opacity={0.3}
                         />
-                    ))}
 
-                    {/* Area fill */}
-                    <path
-                        d={primaryAreaPath}
-                        fill="url(#areaGradient)"
-                    />
+                        <XAxis
+                            dataKey="day"
+                            stroke="var(--color-text-muted)"
+                            fontSize={11}
+                            tickLine={false}
+                            interval={9}
+                        />
 
-                    {/* Secondary line (dotted) */}
-                    <path
-                        d={secondaryPath}
-                        fill="none"
-                        stroke={colors.secondary}
-                        strokeWidth="2"
-                        strokeDasharray="5,5"
-                        opacity="0.5"
-                    />
+                        <YAxis
+                            stroke="var(--color-text-muted)"
+                            fontSize={11}
+                            tickLine={false}
+                            axisLine={false}
+                            domain={[0, 100]}
+                        />
 
-                    {/* Primary line */}
-                    <path
-                        d={primaryPath}
-                        fill="none"
-                        stroke={colors.primary}
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '12px',
+                            }}
+                            labelStyle={{ color: 'var(--color-text-primary)', fontWeight: 600 }}
+                            itemStyle={{ color: 'var(--color-text-secondary)' }}
+                        />
 
-                    {/* Data points on primary line */}
-                    {showPointsAt.map(idx => {
-                        const point = primaryPoints[idx];
-                        return (
-                            <circle
-                                key={`primary-${idx}`}
-                                cx={point.x}
-                                cy={point.y}
-                                r="5"
-                                fill="var(--color-bg-tertiary)"
-                                stroke={colors.primary}
-                                strokeWidth="2.5"
-                            />
-                        );
-                    })}
+                        <Legend
+                            wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+                            iconType="line"
+                        />
 
-                    {/* Data points on secondary line */}
-                    {showPointsAt.map(idx => {
-                        const point = secondaryPoints[idx];
-                        return (
-                            <circle
-                                key={`secondary-${idx}`}
-                                cx={point.x}
-                                cy={point.y}
-                                r="4"
-                                fill="var(--color-bg-tertiary)"
-                                stroke={colors.secondary}
-                                strokeWidth="2"
-                                opacity="0.6"
-                            />
-                        );
-                    })}
-                </svg>
+                        {/* Baseline (dotted line) */}
+                        <Line
+                            type="monotone"
+                            dataKey="baseline"
+                            stroke={colors.secondary}
+                            strokeWidth={2}
+                            strokeDasharray="5 5"
+                            dot={false}
+                            opacity={0.5}
+                            name="Baseline"
+                            isAnimationActive={true}
+                        />
+
+                        {/* Uptime (main line) */}
+                        <Line
+                            type="monotone"
+                            dataKey="uptime"
+                            stroke={colors.primary}
+                            strokeWidth={3}
+                            dot={{ fill: 'var(--color-bg-tertiary)', stroke: colors.primary, strokeWidth: 2, r: 4 }}
+                            activeDot={{ r: 6, fill: colors.primary }}
+                            name="Uptime %"
+                            isAnimationActive={true}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
             </div>
 
             <div className={styles.xLabels}>

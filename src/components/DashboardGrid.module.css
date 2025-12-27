@@ -176,20 +176,26 @@
     border-radius: 50%;
 }
 
+.interactiveChart {
+    height: 150px;
+    width: 100%;
+    margin-top: var(--spacing-md);
+}
+
+/* Keep old trendGraph for backwards compatibility if needed */
 .trendGraph {
+    height: 80px;
     display: flex;
     align-items: flex-end;
     gap: 2px;
-    height: 60px;
-    width: 100%;
+    padding: var(--spacing-sm) 0;
 }
 
 .trendBar {
     flex: 1;
-    background: var(--color-accent-highlight);
-    opacity: 0.2;
-    border-radius: 1px 1px 0 0;
-    transition: opacity 0.2s;
+    background: linear-gradient(to top, var(--color-accent-highlight), rgba(128, 90, 213, 0.3));
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: opacity var(--transition-base);
 }
 
 .trendBar:hover {

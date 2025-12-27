@@ -1,176 +1,231 @@
+"use client";
+
+import { useEffect, useState, useMemo } from "react";
+import DottedMap from "dotted-map";
 import { Node } from "@/lib/types";
+import Loader from "@/components/Loader";
 import styles from "./GlobalMap.module.css";
 
 interface GlobalMapProps {
     nodes: Node[];
 }
 
+interface CountryStats {
+    code: string;
+    name: string;
+    requests: number;
+    rps: number;
+    color: string;
+}
+
+// Colors for top countries
+const COUNTRY_COLORS = [
+    "#3b82f6", // Blue (US)
+    "#eab308", // Yellow (DE/GB)
+    "#f97316", // Orange (IN)
+    "#ef4444", // Red (BR/JP)
+    "#10b981", // Green (SG)
+    "#8b5cf6", // Purple
+    "#ec4899", // Pink
+];
+
 export default function GlobalMap({ nodes }: GlobalMapProps) {
-    // Deterministic pseudo-random based on string seed
-    const getStableRandom = (seed: string, offset: number = 0) => {
-        const charCodeSum = seed.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const x = Math.sin(charCodeSum + offset) * 10000;
-        return x - Math.floor(x);
-    };
+    const [svgMap, setSvgMap] = useState<string>("");
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Approximate coordinates for regions with stable jitter
-    const getPosition = (region: string, nodeId: string) => {
-        const jitter = (base: number, offsetIdx: number) => base + (getStableRandom(nodeId, offsetIdx) - 0.5) * 5;
+    // Calculate statistics
+    const stats = useMemo(() => {
+        const totalRequests = nodes.reduce((acc, node) => acc + (node.requests || 0), 0);
+        const totalRps = nodes.reduce((acc, node) => acc + (node.requestsPerSecond || 0), 0);
 
-        switch (region) {
-            case "us-east-1": return { x: jitter(28, 1), y: jitter(38, 2) }; // US East
-            case "us-west-2": return { x: jitter(18, 3), y: jitter(38, 4) }; // US West
-            case "eu-central-1": return { x: jitter(52, 5), y: jitter(28, 6) }; // Germany
-            case "eu-west-1": return { x: jitter(49, 7), y: jitter(29, 8) }; // UK
-            case "ap-southeast-1": return { x: jitter(78, 9), y: jitter(55, 10) }; // Singapore
-            case "ap-northeast-1": return { x: jitter(85, 11), y: jitter(38, 12) }; // Japan
-            default: return { x: jitter(50, 13), y: jitter(50, 14) };
+        // Group by country
+        const countryMap = new Map<string, CountryStats>();
+
+        nodes.forEach(node => {
+            if (!node.country || node.status === 'offline' || node.country === 'Unknown') return;
+
+            const country = node.country;
+            const code = getCountryCode(country);
+
+            if (countryMap.has(country)) {
+                const stat = countryMap.get(country)!;
+                stat.requests += node.requests || 0;
+                stat.rps += node.requestsPerSecond || 0;
+            } else {
+                countryMap.set(country, {
+                    code,
+                    name: country,
+                    requests: node.requests || 0,
+                    rps: node.requestsPerSecond || 0,
+                    color: "#64748b",
+                });
+            }
+        });
+
+        // Sort by requests and assign colors
+        const topCountries = Array.from(countryMap.values())
+            .sort((a, b) => b.requests - a.requests)
+            .slice(0, 7)
+            .map((country, idx) => ({
+                ...country,
+                color: COUNTRY_COLORS[idx % COUNTRY_COLORS.length]
+            }));
+
+        return { totalRequests, totalRps, topCountries };
+    }, [nodes]);
+
+    useEffect(() => {
+        // Show loading if no valid nodes with location data
+        const nodesWithLocation = nodes.filter(n =>
+            n.latitude && n.longitude && n.status !== 'offline' && n.country !== 'Unknown'
+        );
+
+        if (nodesWithLocation.length === 0) {
+            setIsLoading(true);
+            return;
         }
-    };
 
-    // Map region to color palette style
-    const getRegionStyle = (region: string) => {
-        switch (region) {
-            case "us-east-1":
-            case "us-west-2": return styles.primary; // US - Blue
-            case "eu-central-1": return styles.secondary; // DE - Yellow
-            case "eu-west-1": return styles.tertiary; // GB - Blue (Shared palette)
-            case "ap-southeast-1": return styles.quinary; // SG - Red-ish (Simulated)
-            case "ap-northeast-1": return styles.quaternary; // JP - Yellow-ish
-            default: return "";
-        }
-    };
+        setIsLoading(false);
+
+        // Create dotted map
+        const map = new DottedMap({ height: 60, grid: "diagonal" });
+
+        // Add one pin for EACH node with scatter offset for visibility
+        nodesWithLocation.forEach((node, index) => {
+            // Find country color - all nodes from same country get same color
+            const countryStat = stats.topCountries.find(c => c.name === node.country);
+            const color = countryStat ? countryStat.color : "#475569";
+
+            // Add larger random offset to scatter nodes visibly across regions
+            // ±3 degrees creates good distribution for 250+ nodes
+            const offsetLat = (Math.random() - 0.5) * 10; // ±3 degrees latitude
+            const offsetLng = (Math.random() - 0.5) * 6; // ±3 degrees longitude
+
+            map.addPin({
+                lat: node.latitude! + offsetLat,
+                lng: node.longitude! + offsetLng,
+                svgOptions: { color, radius: 0.5 }, // Larger dots for visibility
+            });
+        });
+
+        // Generate SVG
+        const svgString = map.getSVG({
+            radius: 0.22,
+            color: "#334155",
+            shape: "circle",
+            backgroundColor: "transparent",
+        });
+
+        setSvgMap(svgString);
+    }, [nodes, stats.topCountries]);
+
+    // Calculate locations and countries for bottom stats
+    const uniqueLocations = new Set(nodes.filter(n => n.city && n.city !== 'Unknown').map(n => n.city));
+    const uniqueCountries = new Set(nodes.filter(n => n.country && n.country !== 'Unknown').map(n => n.country));
+
+    // Show loader if no data
+    if (isLoading) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.loaderWrapper}>
+                    <Loader />
+                    <p className={styles.loaderText}>Loading global network data...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className={styles.mapContainer}>
-            <div className={styles.mapContent}>
-                {/* Left Side: Metrics Panel removed to match cleaner Vercel-like aesthetic better if user prefers, 
-                    but keeping structure for now as requested "don't change anything there" except fixing map.
-                    The logic below handles the visualization stability.
-                */}
-                <div className={styles.metricsPanel}>
-                    <div className={styles.totalRequestsLabel}>Total Requests</div>
-                    <div className={styles.totalRequestsValue}>115,838,147,868</div>
-                    <div className={styles.requestsPerSec}>428,079/s</div>
+        <div className={styles.container}>
+            <div className={styles.header}>
+                <div className={styles.subtitle}>GLOBAL NETWORK ACTIVITY</div>
+                <div className={styles.totalRequests}>
+                    {stats.totalRequests.toLocaleString()}
+                </div>
+                <div className={styles.totalRps}>
+                    {stats.totalRps.toLocaleString()}/s
+                </div>
+            </div>
 
-                    <div className={styles.listHeader}>Top Countries by Requests</div>
+            <div className={styles.contentGrid}>
+                {/* Left Side: Top Countries */}
+                <div className={styles.statsColumn}>
+                    <div className={styles.columnTitle}>TOP COUNTRIES BY REQUESTS</div>
                     <div className={styles.countryList}>
-                        <div className={styles.countryItem}>
-                            <div className={styles.countryCode}>
-                                <span className={`${styles.legendDot} ${styles.valPrimary}`}></span> US
-                            </div>
-                            <div className={styles.countryValue}>40,776,365,166</div>
-                            <div className={styles.countryRate}>159,044/s</div>
-                        </div>
-                        <div className={styles.countryItem}>
-                            <div className={styles.countryCode}>
-                                <span className={`${styles.legendDot} ${styles.valSecondary}`}></span> DE
-                            </div>
-                            <div className={styles.countryValue}>6,211,366,240</div>
-                            <div className={styles.countryRate}>24,361/s</div>
-                        </div>
-                        <div className={styles.countryItem}>
-                            <div className={styles.countryCode}>
-                                <span className={`${styles.legendDot} ${styles.valTertiary}`}></span> GB
-                            </div>
-                            <div className={styles.countryValue}>4,951,970,695</div>
-                            <div className={styles.countryRate}>21,281/s</div>
-                        </div>
-                        <div className={styles.countryItem}>
-                            <div className={styles.countryCode}>
-                                <span className={`${styles.legendDot} ${styles.valQuaternary}`}></span> IN
-                            </div>
-                            <div className={styles.countryValue}>4,357,372,261</div>
-                            <div className={styles.countryRate}>18,227/s</div>
-                        </div>
-                        <div className={styles.countryItem}>
-                            <div className={styles.countryCode}>
-                                <span className={`${styles.legendDot} ${styles.valQuinary}`}></span> BR
-                            </div>
-                            <div className={styles.countryValue}>3,932,951,467</div>
-                            <div className={styles.countryRate}>16,171/s</div>
-                        </div>
-                        <div className={styles.countryItem}>
-                            <div className={styles.countryCode}>
-                                <span className={`${styles.legendDot} ${styles.valSecondary}`}></span> SG
-                            </div>
-                            <div className={styles.countryValue}>3,806,970,361</div>
-                            <div className={styles.countryRate}>15,292/s</div>
-                        </div>
-                        <div className={styles.countryItem}>
-                            <div className={styles.countryCode}>
-                                <span className={`${styles.legendDot} ${styles.valQuinary}`}></span> JP
-                            </div>
-                            <div className={styles.countryValue}>3,690,364,431</div>
-                            <div className={styles.countryRate}>14,857/s</div>
-                        </div>
+                        {stats.topCountries.length > 0 ? (
+                            stats.topCountries.map((country, idx) => (
+                                <div key={idx} className={styles.countryRow}>
+                                    <span
+                                        className={styles.countryIndicator}
+                                        style={{ backgroundColor: country.color }}
+                                    />
+                                    <span className={styles.countryCode}>{country.code}</span>
+                                    <span className={styles.countryRequests}>
+                                        {country.requests.toLocaleString()}
+                                    </span>
+                                    <span className={styles.countryRps}>
+                                        {country.rps.toLocaleString()}/s
+                                    </span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className={styles.noData}>No country data available</div>
+                        )}
                     </div>
+                    {stats.topCountries.length > 0 && (
+                        <div className={styles.regionsNote}>
+                            ▲ {stats.topCountries.length} Countries
+                        </div>
+                    )}
                 </div>
 
-                {/* Right Side: Dot Map */}
-                <div className={styles.mapViz}>
-                    {/* Detailed Dotted World Map SVG */}
-                    <svg className={styles.worldMapSvg} viewBox="0 0 1000 450" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <pattern id="dotPattern" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
-                                <circle cx="1" cy="1" r="1" fill="#333" />
-                            </pattern>
-                        </defs>
-                        {/* Outline of World Map (Simplified High-Res Path) */}
-                        <path
-                            d="M152.4,148.9l-2.3-1.6l-5.6,3.6l-2.6-1.5l-2.1,3.4l-6.3-1.8l-1.3,2.6l-4.4,0.3l-3.9,4.4l0.3,3.9l3.4,4.7l-4.7,2.1
-                 l-1.8,4.7l-4.2,1.8l-0.5,4.4l5.2,6.5l0.3,3.9l-4.4,2.9l-5.5-1.6l-4.7,1.3l-2.3,4.2l2.3,4.2l3.6,1.8l-0.5,4.4l-4.2,2.3
-                 l-3.4-1.8l-2.1,3.1l-6.8-0.3l-2.3,2.6l-4.4-1.8l-4.9,2.9l-1.3,4.4l2.1,4.9l-1.3,4.2l-4.9,1.3l-1.8,5.7l2.1,3.1l4.4,1.8
-                 l-0.5,5.2l-3.9,4.9l-4.4-0.5l-4.4,2.1l0.3,5.2l-2.6,3.4l-6.5-1.3l-1.6,3.4l3.1,3.9l0.5,5.7l-3.1,4.7l-6.8,1.6l-4.4,3.1
-                 l-3.4,4.4l1.3,4.2l-2.6,2.3l-0.5,5.7l2.9,3.9l4.9,1.3l3.6,5.2l-1.6,4.4l-5.7,2.1l-3.4,3.6l2.1,4.2l5.7,2.1l4.7,0.3
-                 l2.9,3.1l-1.8,6.8l2.9,3.9l4.4,1.8l3.1,5.2l5.2,2.3l4.2-0.5l5.2,2.9l4.4,0.3l3.1,4.4l4.9-0.5l4.4,2.9l5.5-0.3l3.1-3.6
-                 l4.4,1.3l4.7,0.3l2.6-2.6l5.7,0.3l3.1,2.9l6.5-1.3l2.6-4.2l5.2-1.3l4.4,1.8l3.1-2.9l6.2,1.3l3.1-2.6l4.4,1.3l3.4-1.8
-                 l5.2,1.6l3.6-2.6l3.1,2.3l5.5-0.5l3.9-3.9l4.4,1.6l4.2-2.3l4.7,0.3l3.4-2.6l5.5,1.3l2.3-3.6l4.4,0.3l3.6-2.6l5.2,1.3
-                 l2.6-2.9l4.9,1.6l2.9-2.9l4.4,1.6l3.9-2.1l3.1,2.9l5.5-1.3l2.9-3.4l5.2,1.3l3.1-2.9l4.4,1.3l3.6-2.6l4.7,1.8l2.9-3.1
-                 l4.9,2.1l3.1-2.9l4.4,2.3l3.9-2.1l4.4,2.3l4.2-2.3l4.7,2.6l2.6-2.9l5.5,2.1l3.1-3.1l4.7,2.3l3.1-2.6l4.7,2.6l4.2-2.9
-                 l2.9,2.6l4.9-0.5l4.2,2.6l3.4-2.9l4.4,2.3l4.7-2.3l3.4,2.6l4.4-1.6l2.9,2.6l4.7-0.5l4.4,2.1l3.9-2.1l4.2,2.3l4.7-2.3
-                 l3.4,2.6l4.2-2.9l3.1,2.9l4.9-1.3l2.9,2.6l4.4-1.6l3.9,2.6l4.4-1.8l5.2,2.6l3.1-2.9l4.2,2.6l4.9-1.6l3.4,2.9l5.5-1.3
-                 l2.9,2.9l4.4-1.3l3.9,2.6l4.2-2.3l5.2,2.1l3.4-2.9l4.7,2.6l3.9-2.6l5.2,2.3l3.1-2.9l4.4,2.3l4.9-2.1l3.4,2.6l5.2-1.3
-                 l3.1,3.1l4.4-2.3l3.9,2.6l4.2-2.3l5.2,2.3l4.4-2.3l3.1,2.9l4.9-1.3l4.2,2.6l3.4-2.9l4.4,2.3l4.7-2.1l3.9,2.6l4.2-2.3
-                 l5.2,2.3l3.1-2.9l4.4,2.3l4.9-2.1l3.4,2.6l5.2-1.3l3.1,3.1l4.4-2.3M700,100"
-                            fill="url(#dotPattern)"
-                            style={{ opacity: 0.6 }}
-                        />
-                        <ellipse cx="220" cy="180" rx="80" ry="90" fill="url(#dotPattern)" opacity="0.3" /> {/* N. America */}
-                        <ellipse cx="300" cy="350" rx="60" ry="80" fill="url(#dotPattern)" opacity="0.3" /> {/* S. America */}
-                        <ellipse cx="530" cy="200" rx="60" ry="60" fill="url(#dotPattern)" opacity="0.3" /> {/* Europe */}
-                        <ellipse cx="550" cy="300" rx="80" ry="90" fill="url(#dotPattern)" opacity="0.3" /> {/* Africa */}
-                        <ellipse cx="750" cy="180" rx="120" ry="100" fill="url(#dotPattern)" opacity="0.3" /> {/* Asia */}
-                        <ellipse cx="850" cy="380" rx="50" ry="50" fill="url(#dotPattern)" opacity="0.3" /> {/* Australia */}
-                    </svg>
+                {/* Right Side: Map */}
+                <div className={styles.mapColumn}>
+                    <div
+                        className={styles.mapWrapper}
+                        dangerouslySetInnerHTML={{ __html: svgMap }}
+                    />
+                </div>
+            </div>
 
-                    {nodes.map((node, i) => {
-                        const pos = getPosition(node.region, node.id);
-                        const colorClass = getRegionStyle(node.region);
-                        const isPulsing = node.status === 'active' && getStableRandom(node.id, 99) > 0.6;
-                        const delay = getStableRandom(node.id, 100) * 2;
-
-                        return (
-                            <div key={node.id}>
-                                <div
-                                    className={`${styles.nodeDot} ${colorClass}`}
-                                    style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                                />
-                                {isPulsing && (
-                                    <div
-                                        className={`${styles.activePulse} ${colorClass}`}
-                                        style={{
-                                            left: `${pos.x}%`,
-                                            top: `${pos.y}%`,
-                                            animationDelay: `${delay}s`
-                                        }}
-                                    />
-                                )}
-                            </div>
-                        );
-                    })}
+            {/* Bottom Stats */}
+            <div className={styles.bottomStats}>
+                <div className={styles.statCard}>
+                    <div className={styles.statLabel}>TOTAL NODES</div>
+                    <div className={styles.statValue}>{nodes.length.toLocaleString()}</div>
+                </div>
+                <div className={styles.statCard}>
+                    <div className={styles.statLabel}>ONLINE NODES</div>
+                    <div className={styles.statValue}>
+                        {nodes.filter(n => n.status === 'active').length.toLocaleString()}
+                    </div>
+                </div>
+                <div className={styles.statCard}>
+                    <div className={styles.statLabel}>LOCATIONS</div>
+                    <div className={styles.statValue}>{uniqueLocations.size}</div>
+                </div>
+                <div className={styles.statCard}>
+                    <div className={styles.statLabel}>COUNTRIES</div>
+                    <div className={styles.statValue}>{uniqueCountries.size}</div>
                 </div>
             </div>
         </div>
     );
+}
+
+function getCountryCode(country: string): string {
+    const codes: Record<string, string> = {
+        "United States": "US",
+        "United Kingdom": "GB",
+        "Germany": "DE",
+        "India": "IN",
+        "Brazil": "BR",
+        "Singapore": "SG",
+        "Japan": "JP",
+        "France": "FR",
+        "Australia": "AU",
+        "Canada": "CA",
+        "Ireland": "IE",
+    };
+    return codes[country] || country.substring(0, 2).toUpperCase();
 }

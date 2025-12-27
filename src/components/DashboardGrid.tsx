@@ -1,6 +1,8 @@
+"use client";
+
 import { Node } from "@/lib/types";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import styles from "./DashboardGrid.module.css";
-// import GlobalMap from "./GlobalMap";
 
 interface DashboardGridProps {
     nodes: Node[];
@@ -13,6 +15,13 @@ export default function DashboardGrid({ nodes }: DashboardGridProps) {
     const avgLatency = Math.floor(activeCount > 0 ? 15 + Math.random() * 5 : 0);
     const munichCount = nodes.filter(n => n.release === "Munich v0.8").length;
     const herrenbergCount = nodes.filter(n => n.release === "Herrenberg v0.9").length;
+
+    // Generate 24h activity data
+    const activityData = Array.from({ length: 24 }, (_, i) => ({
+        hour: i,
+        label: `${i}:00`,
+        activity: 40 + Math.floor(Math.random() * 60), // Random activity 40-100
+    }));
 
     return (
         <div className={styles.healthPanel}>
@@ -40,7 +49,11 @@ export default function DashboardGrid({ nodes }: DashboardGridProps) {
                         </div>
                         <div className={styles.kpiCard}>
                             <span className={styles.kpiLabel}>Network Uptime</span>
-                            <span className={styles.kpiValue}>99.20%</span>
+                            <span className={styles.kpiValue}>
+                                {nodes.length > 0
+                                    ? (nodes.reduce((acc, n) => acc + (n.performanceScore || 0), 0) / nodes.length * 100).toFixed(2)
+                                    : "0.00"}%
+                            </span>
                         </div>
                         <div className={styles.kpiCard}>
                             <span className={styles.kpiLabel}>Avg Response</span>
@@ -67,11 +80,48 @@ export default function DashboardGrid({ nodes }: DashboardGridProps) {
                     </div>
                     <div className={styles.chartGroup}>
                         <p className={styles.chartLabel}>24h Activity History</p>
-                        {/* Simple visual mock of a trend line using CSS gradients or bars */}
-                        <div className={styles.trendGraph}>
-                            {[40, 60, 45, 70, 80, 55, 65, 90, 75, 50, 60, 70, 40, 60, 45, 70, 80, 55, 65, 90, 75, 50, 60, 70].map((h, i) => (
-                                <div key={i} className={styles.trendBar} style={{ height: `${h}%` }}></div>
-                            ))}
+                        {/* Interactive chart with Recharts */}
+                        <div className={styles.interactiveChart}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={activityData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="var(--color-accent-highlight)" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="var(--color-accent-highlight)" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <XAxis
+                                        dataKey="label"
+                                        stroke="var(--color-text-muted)"
+                                        fontSize={10}
+                                        tickLine={false}
+                                        interval={5}
+                                    />
+                                    <YAxis
+                                        stroke="var(--color-text-muted)"
+                                        fontSize={10}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: 'var(--color-bg-secondary)',
+                                            border: '1px solid var(--color-border)',
+                                            borderRadius: 'var(--radius-md)',
+                                            fontSize: '12px',
+                                        }}
+                                        labelStyle={{ color: 'var(--color-text-primary)' }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="activity"
+                                        stroke="var(--color-accent-highlight)"
+                                        strokeWidth={2}
+                                        fill="url(#activityGradient)"
+                                        isAnimationActive={true}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>

@@ -1,215 +1,203 @@
-.mapContainer {
-    background: black;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-lg);
-    height: 550px;
-    display: flex;
-    flex-direction: column;
+.container {
     position: relative;
+    width: 100%;
+    background: #000;
+    /* Black background like reference */
+    border: 1px solid #333;
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    color: #fff;
+    font-family: var(--font-family-mono);
     overflow: hidden;
+    min-height: 500px;
 }
 
-.mapContent {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    height: 100%;
-}
-
-/* Left Panel - Metrics */
-.metricsPanel {
+.loaderWrapper {
     display: flex;
     flex-direction: column;
-    z-index: 10;
-    padding-right: var(--spacing-lg);
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 20px;
 }
 
-.totalRequestsLabel {
-    font-size: 13px;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: var(--spacing-xs);
-}
-
-.totalRequestsValue {
-    font-size: 42px;
-    font-weight: 700;
-    color: #fff;
-    font-variant-numeric: tabular-nums;
-    margin-bottom: var(--spacing-xs);
-    letter-spacing: -0.02em;
-}
-
-.requestsPerSec {
+.loaderText {
+    color: #888;
     font-size: 14px;
-    color: var(--color-text-muted);
-    margin-bottom: var(--spacing-2xl);
-    font-family: var(--font-family-mono);
+    margin: 0;
 }
 
-.listHeader {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
+.noData {
+    color: #666;
+    font-size: 13px;
+    padding: 12px;
+    text-align: center;
+}
+
+.header {
+    margin-bottom: 40px;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
     letter-spacing: 0.05em;
-    margin-bottom: var(--spacing-md);
+}
+
+.totalRequests {
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+    background: linear-gradient(180deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.totalRps {
+    font-size: 14px;
+    color: #888;
+}
+
+.contentGrid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 40px;
+    margin-bottom: 60px;
+    align-items: center;
+}
+
+.statsColumn {
+    font-family: sans-serif;
+    /* Switch font for list */
+}
+
+.columnTitle {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 16px;
+    font-weight: 600;
 }
 
 .countryList {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 12px;
 }
 
-.countryItem {
-    display: flex;
+.countryRow {
+    display: grid;
+    grid-template-columns: 12px 30px 1fr auto;
+    gap: 12px;
     align-items: center;
-    gap: var(--spacing-md);
     font-family: var(--font-family-mono);
     font-size: 13px;
 }
 
-.countryCode {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    width: 40px;
-    color: var(--color-text-primary);
-    font-weight: 600;
-}
-
-.legendDot {
-    width: 6px;
-    height: 6px;
+.countryIndicator {
+    width: 8px;
+    height: 8px;
+    /* Square in reference, or use rounded-sm */
     border-radius: 1px;
 }
 
-.valPrimary {
-    background-color: #0070f3;
+.countryCode {
+    color: #3b82f6;
+    /* Blueish for codes */
+    font-weight: 600;
 }
 
-.valSecondary {
-    background-color: #f5a623;
-}
-
-.valTertiary {
-    background-color: #0070f3;
-}
-
-.valQuaternary {
-    background-color: #f5a623;
-}
-
-.valQuinary {
-    background-color: #ff0000;
-}
-
-.countryValue {
-    color: var(--color-text-primary);
-    margin-left: auto;
-}
-
-.countryRate {
-    color: var(--color-text-muted);
-    width: 80px;
+.countryRequests {
+    color: #fff;
     text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
-/* Map Visualization */
-.mapViz {
+.countryRps {
+    color: #666;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    min-width: 80px;
+}
+
+.regionsNote {
+    margin-top: 16px;
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+/* Map */
+.mapColumn {
     position: relative;
-    /* Mask effect to fade edges if needed */
-    mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
+    /* Shift map slightly right/up to match composite */
 }
 
-.worldMapSvg {
+.mapWrapper {
     width: 100%;
-    height: 100%;
-    opacity: 0.5;
-    /* Slightly increased for visibility */
-    filter: grayscale(100%);
 }
 
-/* Node Dots with Country Colors */
-.nodeDot {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
-    background: #fff;
-    /* Default */
-    transition: all 0.3s ease;
+.mapWrapper svg {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
 }
 
-.nodeDot.primary {
-    background: #0070f3;
-    box-shadow: 0 0 6px rgba(0, 112, 243, 0.6);
+/* Bottom Stats */
+.bottomStats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding-top: 24px;
+    border-top: 1px solid #222;
 }
 
-.nodeDot.secondary {
-    background: #f5a623;
-    box-shadow: 0 0 6px rgba(245, 166, 35, 0.6);
+.statCard {
+    display: flex;
+    flex-direction: column;
 }
 
-.nodeDot.tertiary {
-    background: #0070f3;
-    box-shadow: 0 0 6px rgba(0, 112, 243, 0.6);
+.statLabel {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
 }
 
-.nodeDot.quaternary {
-    background: #f5a623;
-    box-shadow: 0 0 6px rgba(245, 166, 35, 0.6);
+.statValue {
+    font-size: 28px;
+    font-weight: 600;
+    color: #fff;
+    font-family: var(--font-family-mono);
 }
 
-.nodeDot.quinary {
-    background: #ff0000;
-    box-shadow: 0 0 6px rgba(255, 0, 0, 0.6);
-}
-
-/* Pulse Animation */
-.activePulse {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: transparent;
-    transform: translate(-50%, -50%);
-    animation: ripple 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
-}
-
-.activePulse.primary {
-    border: 1px solid #0070f3;
-}
-
-.activePulse.secondary {
-    border: 1px solid #f5a623;
-}
-
-.activePulse.tertiary {
-    border: 1px solid #0070f3;
-}
-
-.activePulse.quaternary {
-    border: 1px solid #f5a623;
-}
-
-.activePulse.quinary {
-    border: 1px solid #ff0000;
-}
-
-@keyframes ripple {
-    0% {
-        width: 4px;
-        height: 4px;
-        opacity: 1;
+@media (max-width: 1200px) {
+    .contentGrid {
+        grid-template-columns: 1fr;
     }
 
-    100% {
-        width: 24px;
-        height: 24px;
-        opacity: 0;
+    .mapColumn {
+        order: -1;
+        /* Map on top on smaller screens */
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+
+    .totalRequests {
+        font-size: 42px;
+    }
+
+    .bottomStats {
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
 }

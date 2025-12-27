@@ -52,7 +52,7 @@ export default function NodesTable({ nodes, pickingFor }: NodesTableProps) {
                         </tr>
                     </thead>
                     <tbody>
-                        {nodes.map((node, i) => {
+                        {nodes.slice(0, 15).map((node, i) => {
                             // Simulate extra data for matching the screenshot aesthetic
                             const uptime = node.status === 'active' ? (99.5 + Math.random() * 0.49).toFixed(2) : '0.00';
                             const responseTime = node.status === 'active' ? Math.floor(8 + Math.random() * 20) : 0;
@@ -100,6 +100,17 @@ export default function NodesTable({ nodes, pickingFor }: NodesTableProps) {
                         })}
                     </tbody>
                 </table>
+
+                {nodes.length > 15 && (
+                    <div className={styles.viewAllContainer}>
+                        <button
+                            className={styles.viewAllBtn}
+                            onClick={() => router.push('/all-nodes')}
+                        >
+                            View All Nodes ({nodes.length})
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

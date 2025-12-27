@@ -31,6 +31,15 @@ export interface Node {
     hasTitan: boolean;
     lastSeen: number;
     isMock: boolean;
+    cpu: number | null; // CPU usage percentage
+    ramUsed: number | null; // RAM used in GB
+    ramTotal: number | null; // Total RAM in GB
+    latitude: number | null; // Geolocation latitude
+    longitude: number | null; // Geolocation longitude
+    city: string | null; // City name
+    country: string | null; // Country name
+    requests: number; // Total requests handled
+    requestsPerSecond: number; // Current request rate
 }
 
 /**
