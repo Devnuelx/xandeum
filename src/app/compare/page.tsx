@@ -7,6 +7,11 @@ import Loader from "@/components/Loader";
 import { Node } from "@/lib/types";
 import styles from "./page.module.css";
 
+// Force dynamic rendering to avoid build errors
+export const dynamic = 'force-dynamic';
+
+const COMPARISON_STORAGE_KEY = 'xandeum_comparison_nodes';
+
 export default function ComparePage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -15,7 +20,21 @@ export default function ComparePage() {
 
     useEffect(() => {
         async function loadNodes() {
-            const nodeIds = searchParams.get("nodes")?.split(",") || [];
+            // Try to get node IDs from URL first, then from localStorage
+            let nodeIds = searchParams.get("nodes")?.split(",") || [];
+
+            if (nodeIds.length === 0) {
+                // Check localStorage for persisted selections
+                const stored = localStorage.getItem(COMPARISON_STORAGE_KEY);
+                if (stored) {
+                    try {
+                        nodeIds = JSON.parse(stored);
+                    } catch (e) {
+                        console.error('Failed to parse stored nodes:', e);
+                    }
+                }
+            }
+
             if (nodeIds.length === 0) {
                 setLoading(false);
                 return;
@@ -26,6 +45,14 @@ export default function ComparePage() {
                 const json = await response.json();
                 const selectedNodes = json.nodes.filter((n: Node) => nodeIds.includes(n.id));
                 setNodes(selectedNodes);
+
+                // Persist to localStorage
+                localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(nodeIds));
+
+                // Update URL if needed
+                if (!searchParams.get("nodes")) {
+                    router.replace(`/compare?nodes=${nodeIds.join(",")}`);
+                }
             } catch (error) {
                 console.error(error);
             } finally {
@@ -34,15 +61,29 @@ export default function ComparePage() {
         }
 
         loadNodes();
-    }, [searchParams]);
+    }, [searchParams, router]);
 
     const handleRemoveNode = (nodeId: string) => {
         const remainingIds = nodes.filter(n => n.id !== nodeId).map(n => n.id);
         if (remainingIds.length === 0) {
+            localStorage.removeItem(COMPARISON_STORAGE_KEY);
             router.push("/all-nodes");
         } else {
+            localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(remainingIds));
             router.push(`/compare?nodes=${remainingIds.join(",")}`);
         }
+    };
+
+    const handleClearAll = () => {
+        localStorage.removeItem(COMPARISON_STORAGE_KEY);
+        router.push("/all-nodes");
+    };
+
+    const handleAddMore = () => {
+        // Store current nodes before navigating
+        const currentIds = nodes.map(n => n.id);
+        localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(currentIds));
+        router.push(`/?picking_for=${currentIds.join(",")}#nodes`);
     };
 
     if (loading) return <Loader />;
@@ -54,10 +95,10 @@ export default function ComparePage() {
                 <div className={styles.header}>
                     <h1 className={styles.title}>Compare Nodes</h1>
                     <div className={styles.actions}>
-                        <button className={styles.btnSecondary} onClick={() => router.push("/all-nodes")}>
+                        <button className={styles.btnSecondary} onClick={handleAddMore}>
                             Add More Nodes
                         </button>
-                        <button className={styles.btnDanger} onClick={() => router.push("/all-nodes")}>
+                        <button className={styles.btnDanger} onClick={handleClearAll}>
                             Clear All
                         </button>
                     </div>
